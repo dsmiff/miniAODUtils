@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# Dominic Smith <dosmith@cern.ch>
-
+'''
+Print information from miniAOD files
+'''
 import ROOT
 import sys
 import math
