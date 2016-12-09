@@ -7,14 +7,16 @@ import math
 from optparse import OptionParser
 import logging
 
+##____________________________________________________________________________||
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-handler = logging.FileHandler('miniAOD_output.log')
+handler = logging.FileHandler('miniAOD_output.log',mode='w')
 handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+##____________________________________________________________________________||
 class LogMessage(object):
     def __init__(self, fmt, *args, **kwargs):
         self.fmt = fmt
@@ -23,6 +25,7 @@ class LogMessage(object):
     def __str__(self):
         return self.fmt.format(*self.args, **self.kwargs)
 
+##____________________________________________________________________________||    
 ROOT.gROOT.SetBatch(1)
 
 parser = OptionParser()
@@ -105,8 +108,11 @@ def loadLibraries():
 
 ##____________________________________________________________________________||
 loadLibraries()
-from DataFormats.FWLite import Events, Handle
-from PhysicsTools.Heppy.physicsobjects.PhysicsObjects import Jet
+try:
+    from DataFormats.FWLite import Events, Handle
+    from PhysicsTools.Heppy.physicsobjects.PhysicsObjects import Jet
+except ImportError:
+    raise ImportError("Unable to import necessary modules")
 
 ##____________________________________________________________________________||
 if __name__ == '__main__':
