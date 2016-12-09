@@ -5,6 +5,23 @@ import ROOT
 import sys
 import math
 from optparse import OptionParser
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler('miniAOD_output.log')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+class LogMessage(object):
+    def __init__(self, fmt, *args, **kwargs):
+        self.fmt = fmt
+        self.args = args
+        self.kwargs = kwargs
+    def __str__(self):
+        return self.fmt.format(*self.args, **self.kwargs)
 
 ROOT.gROOT.SetBatch(1)
 
@@ -29,6 +46,8 @@ def printHeader():
     print '%10s' % 'nSubJets',
     print '%10s' % 'subjetPts',
     print
+    logger.info(LogMessage('Header info'))
+    logger.info(LogMessage('run lumi event jet.pt nSubjets subjetPts'))
     
 ##____________________________________________________________________________||
 def count(inputPath):
@@ -47,7 +66,12 @@ def count(inputPath):
 
         event.getByLabel('slimmedJetsAK8', handleJets)
         jets = map(Jet, handleJets.product())
-
+        if eventId == 2403: break
+        
+        logger.info(LogMessage('run: {run}', run=run))
+        logger.info(LogMessage('lumi: {lumi}', lumi=lumi))
+        logger.info(LogMessage('eventId: {event}', event=eventId))
+        
         for jet in jets:
 
             subjets = jet.subjets('SoftDrop')
@@ -59,7 +83,9 @@ def count(inputPath):
             print '%10.3f' % jet.pt(),
             print '%10.3f' % nSubjets,
             print '{0}'.format(subjetPts)
-            
+            logger.info(LogMessage('AK8 Jet PT: {jetPt}', jetPt=jet.pt()))
+            logger.info(LogMessage('nSubjets: {nSubjets}', nSubjets=nSubjets))
+            logger.info(LogMessage('subjet Pts: {subjetsPts}', subjetsPts=subjetPts))
 
 ##____________________________________________________________________________||
 def getNEvents(inputPath):
