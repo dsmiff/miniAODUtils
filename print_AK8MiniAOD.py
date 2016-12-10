@@ -37,6 +37,7 @@ inputPath = options.inputPath
 ##____________________________________________________________________________||
 def main():
 
+    print 'Running over : ', inputPath
     printHeader()
     if getNEvents(inputPath):
         count(inputPath)
@@ -46,9 +47,10 @@ def printHeader():
     print '%6s'  % 'run',
     print '%10s' % 'lumi',
     print '%9s'  % 'event',
-    print '%10s' % 'jet.pt',
-    print '%10s' % 'nSubJets',
-    print '%10s' % 'subjetPts',
+    print '%10s' % 'AK8jet.pt',
+    print '%10s' % "slimmedJetsAK8.subjets('SoftDrop')",
+    print '%10s' % 'slimmedJetsAK8.subjetsPt',
+    print '%10s' % 'slimmedJetsAK8CHSSoftDropPackedsubjets',
     print
     logger.info(LogMessage('Header info'))
     logger.info(LogMessage('run lumi event jet.pt nSubjets subjetPts'))
@@ -61,7 +63,8 @@ def count(inputPath):
     events = Events(files)
 
     handleJets = Handle("std::vector<pat::Jet>")
-
+    handleSubJets = Handle("std::vector<pat::Jet>")
+    
     for event in events:
 
         run = event.eventAuxiliary().run()
@@ -69,14 +72,21 @@ def count(inputPath):
         eventId = event.eventAuxiliary().event()
 
         event.getByLabel('slimmedJetsAK8', handleJets)
-        jets = map(Jet, handleJets.product())
+        event.getByLabel(('slimmedJetsAK8PFCHSSoftDropPacked', 'SubJets', 'PAT'), handleSubJets)
+
+        jetCol =  handleJets.product()
+        subjetCol = handleSubJets.product()
+
         if eventId == 2403: break
         
         logger.info(LogMessage('run: {run}', run=run))
         logger.info(LogMessage('lumi: {lumi}', lumi=lumi))
         logger.info(LogMessage('eventId: {event}', event=eventId))
-        
-        for jet in jets:
+
+        subjetCol_pts = [sj.pt() for sj in subjetCol]
+        nsubjetCol = subjetCol.size()
+
+        for jet in jetCol:
 
             subjets = jet.subjets('SoftDrop')
             nSubjets = int(subjets.size())
@@ -86,7 +96,9 @@ def count(inputPath):
             print '%9d'    % eventId,            
             print '%10.3f' % jet.pt(),
             print '%10.3f' % nSubjets,
-            print '{0}'.format(subjetPts)
+            print '{0}'.format(subjetPts),
+            print '%10.3f' % nsubjetCol
+
             logger.info(LogMessage('AK8 Jet PT: {jetPt}', jetPt=jet.pt()))
             logger.info(LogMessage('nSubjets: {nSubjets}', nSubjets=nSubjets))
             logger.info(LogMessage('subjet Pts: {subjetsPts}', subjetsPts=subjetPts))
@@ -111,7 +123,6 @@ def loadLibraries():
 loadLibraries()
 try:
     from DataFormats.FWLite import Events, Handle
-    from PhysicsTools.Heppy.physicsobjects.PhysicsObjects import Jet
 except ImportError:
     raise ImportError("Unable to import necessary modules")
 
